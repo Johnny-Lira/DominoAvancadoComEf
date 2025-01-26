@@ -1,46 +1,81 @@
-﻿
-namespace DominoAvancadoComEf.Entities
+﻿namespace DominoAvancadoComEf.Entities
 {
     public class Order
     {
         public Guid Id { get; init; }
         public DateTime StartDate { get; init; }
         public DateTime? EndDate { get; private set; }
-        public OrderStatus Status { get; set; }
-        public CreationMethod OrderCreationMethod { get; init; } // Renamed to avoid conflict
+        public OrderStatus Status { get; private set; }
+        public CreationMethod OrderCreationMethod { get; init; }
 
         // Ef Construtor
         private Order() { }
 
-        public Order(CreationMethod creationMethod)
+        public Order(DateTime startDate, CreationMethod creationMethod)
         {
+            Id = Guid.NewGuid();
+            StartDate = startDate;
+            Status = OrderStatus.Active;
+            OrderCreationMethod = creationMethod;
+
             if (creationMethod == CreationMethod.Manual)
             {
                 if (StartDate > Utils.Utils.BrasiliaTimeNow())
                 {
-                    throw new Exception("A data de início não pode ser maior que a data atual");
+                    throw new Exception("A data de início não pode ser no futuro");
                 }
             }
 
-            Id = Guid.NewGuid();
-            StartDate = Utils.Utils.BrasiliaTimeNow();
-            Status = OrderStatus.Active;
-            OrderCreationMethod = creationMethod;
+            if (creationMethod == CreationMethod.Planned)
+            {
+                StartDate = startDate;
+
+                if (StartDate < Utils.Utils.BrasiliaTimeNow())
+                {
+                    throw new Exception("A data de início não pode ser no passado");
+                }
+            }
         }
 
-
-        public enum OrderStatus
+        public void Finish()
         {
-            Active,
-            Finished,
-            Canceled
+            if (Status == OrderStatus.Finished)
+            {
+                throw new Exception("A ordem já foi finalizada");
+            }
+            EndDate = Utils.Utils.BrasiliaTimeNow();
+            Status = OrderStatus.Finished;
         }
 
-        public enum CreationMethod
+        public void Cancel()
         {
-            Planned,
-            Manual
-        }
+            if (OrderCreationMethod == CreationMethod.Planned)
+            {
+                throw new Exception("Ordem Planejada nao pode ser cancelada");
+            }
 
+            if (Status == OrderStatus.Canceled)
+            {
+                throw new Exception("A ordem já foi cancelada");
+            }
+
+            Status = OrderStatus.Canceled;
+        }
     }
+
+
+    public enum OrderStatus
+    {
+        Active,
+        Finished,
+        Canceled
+    }
+
+    public enum CreationMethod
+    {
+        Planned,
+        Manual
+    }
+
 }
+
