@@ -11,32 +11,6 @@
         // Ef Construtor
         private Order() { }
 
-        public Order(DateTime startDate, CreationMethod creationMethod)
-        {
-            Id = Guid.NewGuid();
-            StartDate = startDate;
-            Status = OrderStatus.Active;
-            OrderCreationMethod = creationMethod;
-
-            if (creationMethod == CreationMethod.Manual)
-            {
-                if (StartDate > Utils.Utils.BrasiliaTimeNow())
-                {
-                    throw new Exception("A data de início não pode ser no futuro");
-                }
-            }
-
-            if (creationMethod == CreationMethod.Planned)
-            {
-                StartDate = startDate;
-
-                if (StartDate < Utils.Utils.BrasiliaTimeNow())
-                {
-                    throw new Exception("A data de início não pode ser no passado");
-                }
-            }
-        }
-
         public void Finish()
         {
             if (Status == OrderStatus.Finished)
@@ -60,6 +34,42 @@
             }
 
             Status = OrderStatus.Canceled;
+        }
+
+        public static class CreateOrder
+        {
+            public static Order CreateManual(DateTime startDate)
+            {
+
+                if (startDate > Utils.Utils.BrasiliaTimeNow())
+                {
+                    throw new Exception("A data de início não pode ser no futuro");
+                }
+
+                return new Order()
+                {
+                    Id = Guid.NewGuid(),
+                    StartDate = startDate,
+                    Status = OrderStatus.Active,
+                    OrderCreationMethod = CreationMethod.Manual
+                };
+            }
+
+            public static Order CreatePlanned(DateTime startDate)
+            {
+                if (startDate < Utils.Utils.BrasiliaTimeNow())
+                {
+                    throw new Exception("A data de início não pode ser no passado");
+                }
+
+                return new Order()
+                {
+                    Id = Guid.NewGuid(),
+                    StartDate = startDate,
+                    Status = OrderStatus.Active,
+                    OrderCreationMethod = CreationMethod.Planned
+                };
+            }
         }
     }
 
