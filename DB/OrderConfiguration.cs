@@ -32,6 +32,11 @@ namespace DominoAvancadoComEf.DB
             builder.Property(o => o.OrderCreationMethod)
                 .IsRequired()
                 .HasConversion<string>();
-        }
+
+            // Discriminator
+            builder.HasDiscriminator<CreationMethod>("OrderCreationMethod")
+                .HasValue<OrderPlanned>(CreationMethod.Planned)
+                .HasValue<OrderManual>(CreationMethod.Manual);
+        }   
     }
 }
